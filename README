@@ -1,0 +1,13 @@
+curio = clustering + yahoo! boss + google app engine
+----------------------------------------------------
+
+Curio is a web search application that provides different user experiences by appling clustering algorithm.
+
+Goals:
+1. To minimize the user's effort to complete a his/her search task
+1. To provide the discovery to the user through the search
+
+Technologyies:
+1. Hierarchical Clustering: http://en.wikipedia.org/wiki/Hierarchical_clustering
+2. Yahoo! BOSS: http://developer.yahoo.com/search/boss/
+3. Google App Engine: http://code.google.com/intl/en/appengine/
