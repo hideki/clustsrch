@@ -1,0 +1,37 @@
+TODO:
+    1. Data Source
+    2. Text processing
+    3. Term vector
+    4. Clustering
+    5. Distance
+    6. Visualization
+        Web UI
+    7. Cluster label
+        Mutual Information
+        Chi-Square
+
+DONE:
+    1. Data Source
+        BOSS
+            0 - 200 entry
+            Title, Abstract, key terms, delicious tags
+    2. Text processing
+        simbol removal
+        html tag removal
+        stopwords
+        lowercase
+    3. Term vector
+        boolean (term)
+        tf (term)
+        norm-tf (term)
+        tfidf (term)
+    4. Clustering
+        hierachical clustering
+    5. Distance
+        pearson
+        euclidean
+        cosine
+    6. Visualization
+        basic
+    7. Cluster label
+        term weight
