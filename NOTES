@@ -1,0 +1,24 @@
+
+Distance: Pearson is good
+          Cosine Similarity is not as good as Pearson
+          Euclidean is is not as good as Pearson
+
+Data Source: Y! BOSS
+
+Field selection for clustering
+ * Title
+ * Abstract
+ * Key Terms (http://www.ysearchblog.com/2008/11/18/yahoo-search-boss-releases-key-terms/)
+ * Delicious (tag http://www.ysearchblog.com/2009/04/09/boss-update-delicious-advanced-language-and-news-capabilities/)
+
+ Terms from abstract have many noise.
+
+Number of clustering
+50 - slow
+100 - super slow
+
+Threshold 
+Setting threshold for dividing groups is hard
+
+Search result clustering is not simle as expected.
+
