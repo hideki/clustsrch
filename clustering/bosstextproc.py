@@ -19,7 +19,7 @@ def textprocess(results, termweight='tfidf'):
         # title
         words.extend(text.tokenize(result['title']))
         # abstract
-        words.extend(text.tokenize(result['abstract']))
+        #words.extend(text.tokenize(result['abstract']))
         # key terms of Yahoo! BOSS results
         if 'keyterms' in result and len(result['keyterms']) > 0:
             words.extend(text.cleanwords(_keyterms(result['keyterms']['terms'])))

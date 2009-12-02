@@ -1,7 +1,7 @@
-curio = clustering + yahoo! boss + google app engine
+clustsrch = clustering + yahoo! boss + google app engine
 ----------------------------------------------------
 
-Curio is a web search application that provides different user experiences by appling clustering algorithm.
+clustsrch is a web search application that provides different user experiences by appling clustering algorithm.
 
 Goals:
 1. To minimize the user's effort to complete a his/her search task

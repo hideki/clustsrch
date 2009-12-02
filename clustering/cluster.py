@@ -1,23 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
+import sys
 import distance
 
 class cluster(object):
-    def __init__(self, vec, left=None, right=None, distance=0.0, id=None):
-        self.vec      = vec
-        self.left     = left
-        self.right    = right
-        self.distance = distance
-        self.id       = id
+    def __init__(self, vec, left=None, right=None, distance=0.0, id=None, smallest_id=None, size=None):
+        self.vec         = vec
+        self.left        = left
+        self.right       = right
+        self.distance    = distance
+        self.id          = id
+        self.smallest_id = smallest_id
+        self.size        = size
 
-def hcluster(rows, distance=distance.pearson):
+def hcluster(rows, distance=distance.pearson, threshold=sys.maxint, maxclusters=sys.maxint):
     distances = {}
     currentclusterid = -1
 
     # clusters are initially just the rows 
-    clusters = [cluster(rows[i], id=i) for i in range(len(rows))]
+    clusters = [cluster(rows[i], id=i, smallest_id=i, size=1) for i in range(len(rows))]
 
     while len(clusters) > 1:
         lowestpair = (0, 1)
@@ -34,12 +36,24 @@ def hcluster(rows, distance=distance.pearson):
                     closest = dist
                     lowestpair = (i, j)
 
+        # stop clustering if closest distance is larger than threshold
+        # and num of clusters is less than miximum cluster counts
+        if closest > threshold and len(clusters) <= maxclusters:
+          break
+
         # calculate the average of the two clusters
         #mergevec = _mergeVector2Ave(clusters, lowestpair)
         mergevec = _mergeVectorAllAve(clusters, lowestpair)
 
         # create the new cluster
-        newcluster = cluster(mergevec, left=clusters[lowestpair[0]], right=clusters[lowestpair[1]], distance=closest, id=currentclusterid)
+        newcluster = cluster(
+            mergevec,
+            left=clusters[lowestpair[0]],
+            right=clusters[lowestpair[1]],
+            distance=closest,
+            id=currentclusterid,
+            smallest_id=min(clusters[lowestpair[0]].smallest_id, clusters[lowestpair[1]].smallest_id),
+            size=sum([clusters[lowestpair[0]].size, clusters[lowestpair[1]].size]))
 
         # cluster ids that weren't in the original set are negative
         currentclusterid -= 1
@@ -47,7 +61,8 @@ def hcluster(rows, distance=distance.pearson):
         del clusters[lowestpair[0]]
         clusters.append(newcluster)
 
-    return clusters[0]
+    return clusters
+
 
 def _mergeVector2Ave(clusters, lowestpair):
     mergevec = [ (clusters[lowestpair[0]].vec[i] + clusters[lowestpair[1]].vec[i]) / 2.0 for i in range(len(clusters[0].vec))]
@@ -72,11 +87,37 @@ def _treesum(cluster, i):
         (sumR, countR) = _treesum(cluster.right, i)
     return (sumL+sumR, countL+countR)
 
+def topNIds(cluster, n):
+  ids = []
+  _traverseIds(cluster, ids)
+  ids.sort()
+  return ids[:n]
+
+def _traverseIds(cluster, ids):
+    if cluster.id >= 0:
+      ids.append(cluster.id)
+    if cluster.left != None:
+      _traverseIds(cluster.left, ids)
+    if cluster.right != None:
+      _traverseIds(cluster.right, ids)
+
+def sortBySmallestId(clusters):
+  clusters.sort(cmp=lambda x,y: cmp(x.smallest_id, y.smallest_id))
+  return clusters
+  
+def printclusters(clusters, results=None, wordlist=None, n = 0):
+  for clust in clusters:
+    print "SMALLEST_ID=%s SIZE=%d" % (str(clust.smallest_id), clust.size)
+    top_ids = topNIds(clust, 5)
+    print top_ids
+    printcluster(clust, results,wordlist,n)
+    print ""
+
 def printcluster(cluster, results=None, wordlist=None, n = 0):
     print ' ' * n,
     if cluster.id < 0:
         # negative id means that this is branch
-        keys = topIndexes(cluster.vec, 5)
+        keys = keyTermIdxs(cluster.vec, 5)
         print '+ ',
         for key in keys:
             print wordlist[key] + ", ",
@@ -91,7 +132,6 @@ def printcluster(cluster, results=None, wordlist=None, n = 0):
                 print str(cluster.id) + ": " + result['title'] + " (" + result['url'] + ")"
             except UnicodeEncodeError:
                 print str(cluster.id) + ": " + "??????????" + " (" + result['url'] + ")"
-            #print str(cluster.id) + ": " + result['title']
     
     # print the left and right branch
     if cluster.left != None:
@@ -99,11 +139,11 @@ def printcluster(cluster, results=None, wordlist=None, n = 0):
     if cluster.right != None:
         printcluster(cluster.right, results=results,wordlist=wordlist, n = n + 1)
         
-def topIndexes(list, n):
+def keyTermIdxs(list, n):
     if len(list) < n:
         n = len(list)
     newlist = []
     for i in range(len(list)):
         newlist.append((i, list[i]))
     newlist = sorted(newlist, key=lambda x:(x[1], x[0]), reverse=True)
-    return [ newlist[i][0] for i in range(n)]
+    return [newlist[i][0] for i in range(n)]
