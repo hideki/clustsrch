@@ -3,42 +3,44 @@
   <head>
     <title>{{query}} - clustring + search Results</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
-    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.0.0/build/cssreset/reset-min.css"> 
-    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.0.0/build/cssfonts/fonts-min.css"> 
-    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.0.0/build/cssgrids/grids.css">
+    <link rel="stylesheet" type="text/css" href="/css/reset-min.css"> 
+    <link rel="stylesheet" type="text/css" href="/css/fonts-min.css"> 
+    <link type="text/css" rel="stylesheet" href="/css/main.css" />
   </head>
   <body>
-    <div class="yui-d0">
+    <div id="wrap">
       <div id="header">
-        <form action=".">
-          <span>clustering + search</span>
-          <input id="q" name="q" type="text" maxlength="2048" style="width:400px" value="{{query}}"/>
+        <form action="/search">
+          <span id='logo'>clustering + search</span>
+          <input id="query" name="query" type="text" maxlength="2048" style="width:400px" value="{{query}}"/>
           <input type="submit" value="Search"/>
         </form>
       </div>
-      <div class="yui-t2">
-        <div class="yui-main">
-          <div class="yui-b">
-            <ol>
-              {% for result in results %}
-                <li>
-                  <h3><a href='{{result.url}}'>{{result.title}}</a><h3> 
-                  <div>{{result.abstract}}</div>
-                  <span>{{result.url}}</span>
-                </li>
-              {% endfor %}
-            </ol>
-          </div>
-      </div>
-      <div id="yui-b">
-        <h2>Groups</h2>
-        <ul>
+
+      <div id="nav">
+        <h2>Cluster</h2>
+        <a href="/cluster?cluster_key={{cluster_key}}&cluster_id=-1">All ({{hits}})</a>
+        <ul class='clusters'>
           {% for label in labels %}
-            <li><a>{{label}}</a></li>
+            <li class='cluster'>
+              <a href="/cluster?cluster_key={{cluster_key}}&cluster_id={{label.index}}">{{label.label}}</a>
+            </li>
           {% endfor %}
         </ul>
       </div>
-      <div id="footer"></div>
+
+      <div id="main">
+        <ol class='results'>
+          {% for result in results %}
+            <li class='result'>
+              <h3 class="title"><a href='{{result.url}}'>{{result.title}}</a><h3> 
+              <div class='abstract'>{{result.abstract}}</div>
+              <span class='url'>{{result.url}}</span>
+            </li>
+          {% endfor %}
+        </ol>
+      </div>
+
     </div>
   </body>
 </html>
