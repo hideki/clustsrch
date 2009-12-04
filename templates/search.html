@@ -11,24 +11,23 @@
     <div id="wrap">
       <div id="header">
         <form action="/search">
-          <span id='logo'>clustering + search</span>
+          <span id='logo'>clustering + search = ?</span>
           <input id="query" name="query" type="text" maxlength="512" style="width:400px" value="{{query}}"/>
           <input type="submit" value="Search"/>
         </form>
       </div>
 
       <div id="nav">
-        <div class='nav-title'>Clusters</div>
         {% if all %}
-          <div class="selected" id='cluster-all'><dfn> › </dfn>All results ({{hits}})</div>
+          <div class='selected' id='cluster-all'><dfn> › </dfn>All results ({{hits}})</div>
         {% else %}
-          <a href="/cluster?query_md5={{query_md5}}&cluster_id=-1">All results ({{hits}})</a>
+          <div id='cluster-all'><a href="/cluster?query_md5={{query_md5}}&cluster_id=-1">All results ({{hits}})</a></div>
         {% endif %}
         <ul class='clusters'>
           {% for label in labels %}
-            <li class='cluster'>
+            <li class='cluster {{label.selected}}'>
               {% if label.selected %}
-                <div class="{{label.selected}}"><dfn> › </dfn>{{label.label}}</div>
+                <div><dfn> › </dfn>{{label.label}}</div>
               {% else %}
                 <a href="/cluster?query_md5={{query_md5}}&cluster_id={{label.index}}" class="{{label.selected}}">{{label.label}}</a>
               {% endif %}

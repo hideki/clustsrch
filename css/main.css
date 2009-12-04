@@ -11,7 +11,7 @@ a:link, a:visited, a:active {
 }
 
 #header{
-  padding:10px 10px 10px 10px;
+  padding:15px 15px 15px 15px;
   font-size: 108%;
   border-bottom:1px solid #C9D7F1;
 }
@@ -25,29 +25,26 @@ a:link, a:visited, a:active {
   font-size: 93%;
   float:left;
   width:240px;
-  padding:10px 10px 10px 10px;
   border-right:1px solid #C9D7F1;
 }
 
-#nav .nav-title{
-  padding: 3px 3px 3px 3px;
-  border-top:1px solid #C9D7F1;
-  border-bottom:1px solid #C9D7F1;
-  margin-bottom: 10px;
-}
-
-.clusters{
-  padding-left:10px;
-}
-.cluster{
-  padding-bottom:7px;
+#nav #cluster-all{
+  margin-top: 10px;
+  margin-left: 10px;
+  padding: 3px 0px 3px 0px;
 }
 
 #nav .selected{
-  font-weight:bold
+  font-weight:bold;
+  background-color: #E5ECF9;
 }
-.cluster .selected{
-  font-weight:bold
+
+#nav .clusters{
+  margin-left: 20px;
+}
+
+#nav .cluster{
+  padding: 4px 0px 4px 0px;
 }
 
 #main{
