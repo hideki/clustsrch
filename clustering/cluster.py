@@ -3,6 +3,7 @@
 
 import sys
 import distance
+import mutualinformation
 
 class cluster(object):
     def __init__(self, vec, left=None, right=None, distance=0.0, id=None, smallest_id=None, size=None):
@@ -121,14 +122,50 @@ def _divide(cluster, threshold, clusters):
     if cluster.right != None:
       _divide(cluster.right, threshold, clusters)
   
+def _calcurate_mi(clusters, cluster_index):
+  features = map(lambda feature: {'N00':0, 'N01': 0, 'N10':0, 'N11':0}, clusters[0].vec)
+  for i in range(len(clusters)):
+    cluster = clusters[i]
+    if i == cluster_index:
+      _traverse_mi(cluster, features, True)
+    else:
+      _traverse_mi(cluster, features, False)
+  mi_scores = map(lambda feature: mutualinformation.mi(float(feature['N11']), float(feature['N01']),float(feature['N10']),float(feature['N00'])), features)
+  return mi_scores
+
+def _traverse_mi(cluster, features, isClass):
+  if cluster.id >= 0:
+    for i in range(len(cluster.vec)):
+      val = cluster.vec[i]
+      if val == 0.0 and isClass == False:
+        features[i]['N00'] += 1
+      if val == 0.0 and isClass == True:
+        features[i]['N01'] += 1
+      if val >  0.0 and isClass == False:
+        features[i]['N10'] += 1
+      if val >  0.0 and isClass == True:
+        features[i]['N11'] += 1
+
+  if cluster.left != None:
+    _traverse_mi(cluster.left, features, isClass)
+  if cluster.right != None:
+    _traverse_mi(cluster.right, features, isClass)
+
 
 def printclusters(clusters, results=None, wordlist=None, n = 0):
+  i = 0
   for clust in clusters:
     print "SMALLEST_ID=%s SIZE=%d" % (str(clust.smallest_id), clust.size)
     top_ids = topNIds(clust, 5)
     print top_ids
+    #mi_scores = _calcurate_mi(clusters, i)
+    #keys = keyTermIdxs(mi_scores, 10)
+    #for key in keys:
+    #  print wordlist[key] + ", ",
+    #print ""
     printcluster(clust, results,wordlist,n)
     print ""
+    i+=1
 
 def printcluster(cluster, results=None, wordlist=None, n = 0):
     print ' ' * n,
