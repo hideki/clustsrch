@@ -207,10 +207,35 @@ class ClusterPage(_BasePage):
     #view
     self._view(query, query_md5, cluster_id, sub_cluster_id, page, cluster_model)
 
+class RemoveAll(webapp.RequestHandler):
+    def get(self) :
+        limit = 10
+        list=self.getMyList(limit)
+        if len(list)<1:
+            self.response.headers['Content-Type'] = 'text/plain'
+            self.response.out.write( 'OK remove all data.' )
+            return 
+        for c in list:
+            c.delete()
+        self.response.headers['Content-Type'] = 'text/html'
+        self.response.out.write( '<html>' )
+        self.response.out.write( '<head>' )
+        self.response.out.write( '<META HTTP-EQUIV="REFRESH" CONTENT="10;URL=/RemoveAll">')
+        self.response.out.write( '</head>' )
+        self.response.out.write( '<body>' )
+        self.response.out.write( 'Again after 10seconds.' )
+        self.response.out.write( '</body>' )
+        self.response.out.write( '</html>' )
+
+    def getMyList(self,limit):
+        query = ClusterModel.gql('LIMIT '+str(limit))
+        return query[0:min(query.count(),limit)]
+
 apps_binding = []
 apps_binding.append(('/',           IndexPage))
 apps_binding.append(('/search',     SearchPage))
 apps_binding.append(('/cluster',    ClusterPage))
+apps_binding.append(('/removeall',    RemoveAll))
 application = webapp.WSGIApplication(apps_binding, debug=True)
 
 def main():
