@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 import urllib
 import simplejson
@@ -22,7 +23,7 @@ def search(query, vertical="web", total_req_size = 100):
     attrs = {}
     # for web search
     if vertical =="web":
-        attrs['abstract'] = 'long'
+        #attrs['abstract'] = 'long'
         attrs['view'] = 'keyterms,delicious_toptags,delicious_saves'
 
     results  = []
@@ -73,7 +74,7 @@ def dumpBossResponse(response):
     dumpBossResults(response['ysearchresponse']['resultset_web'])
 
 def main():
-    dumpBossResults(search("yahoo! mail", 'web', 5))
+    dumpBossResults(search("グーグル", 'web', 5))
 
 if __name__ == '__main__':
     main()

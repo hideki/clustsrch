@@ -1,35 +1,56 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
   <head>
-    <title>{{query}} - clustring + search Results</title>
+    <title>{{query}} - clustring+search Results</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <link rel="stylesheet" type="text/css" href="/css/reset-min.css"> 
     <link rel="stylesheet" type="text/css" href="/css/fonts-min.css"> 
     <link type="text/css" rel="stylesheet" href="/css/main.css" />
+    <link type="text/css" rel="stylesheet" href="/css/page.css" />
   </head>
   <body>
     <div id="wrap">
       <div id="header">
         <form action="/search">
-          <span id='logo'>clustering + search = ?</span>
+          <span id='logo'>clustering+search</span>
           <input id="query" name="query" type="text" maxlength="512" style="width:400px" value="{{query}}"/>
           <input type="submit" value="Search"/>
         </form>
       </div>
 
       <div id="nav">
-        {% if all %}
+        {% if selected_all %}
           <div class='selected' id='cluster-all'><dfn> › </dfn>All results ({{hits}})</div>
         {% else %}
-          <div id='cluster-all'><a href="/cluster?query_md5={{query_md5}}&cluster_id=-1">All results ({{hits}})</a></div>
+          <div id='cluster-all'>
+            <a href="/cluster?query_md5={{query_md5}}&cluster_id=-1&sub_cluster_id=-1&page=1">All results ({{hits}})</a>
+          </div>
         {% endif %}
+
         <ul class='clusters'>
           {% for label in labels %}
-            <li class='cluster {{label.selected}}'>
+            <li class='cluster'>
               {% if label.selected %}
-                <div><dfn> › </dfn>{{label.label}}</div>
+
+                {% if selected_cluster %}
+                  <div class='{{label.selected}}'><dfn> › </dfn>{{label.label}}</div>
+                {% else %}
+                  <a href="/cluster?query_md5={{query_md5}}&cluster_id={{label.index}}&sub_cluster_id=-1&page=1">{{label.label}}</a>
+                {% endif %}
+
+                <ul class='subclusters'>
+                  {% for sublabel in sublabels %}
+                    <li class='cluster {{sublabel.selected}}'>
+                      {% if sublabel.selected %}
+                        <div class='{{sublabel.selected}}'><dfn> › </dfn>{{sublabel.label}}</div>
+                      {% else %}
+                        <a href="/cluster?query_md5={{query_md5}}&cluster_id={{label.index}}&sub_cluster_id={{sublabel.index}}&page=1">{{sublabel.label}}</a>
+                      {% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
               {% else %}
-                <a href="/cluster?query_md5={{query_md5}}&cluster_id={{label.index}}" class="{{label.selected}}">{{label.label}}</a>
+                <a href="/cluster?query_md5={{query_md5}}&cluster_id={{label.index}}&sub_cluster_id=-1&page=1" class="{{label.selected}}">{{label.label}}</a>
               {% endif %}
             </li>
           {% endfor %}
@@ -42,10 +63,26 @@
             <li class='result'>
               <h3 class="title"><a href='{{result.url}}'>{{result.title}}</a><h3> 
               <div class='abstract'>{{result.abstract}}</div>
-              <cite class='url'>{{result.url}}</span>
+              <cite class='url'>{{result.dispurl}}</span>
             </li>
           {% endfor %}
         </ol>
+
+        
+        {% if paging %}
+        <div class="PagesFlickr">
+          <div class="Paginator">
+            {% for page in pages %}
+              {% if page.1 %}
+                <span class='this-page'>{{page.0}}</span>
+              {% else %}
+                <a href="/cluster?query_md5={{query_md5}}&cluster_id={{cluster_id}}&sub_cluster_id={{sub_cluster_id}}&page={{page.0}}">{{page.0}}</a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
       </div>
 
     </div>

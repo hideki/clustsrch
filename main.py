@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 import logging
+import math
 import md5
 import os
 import pickle
@@ -14,12 +16,14 @@ from clustering import bosstextproc
 from clustering import cluster
 from clustering import distance
 
+# Cluster representative for UI
 class Cluster(object):
   def __init__(self, index, label, selected):
     self.index = index
     self.label = label
     self.selected = selected
 
+# Cluster representative for DB
 class ClusterModel(db.Model):
   query_md5 = db.StringProperty()
   query     = db.StringProperty()
@@ -28,13 +32,136 @@ class ClusterModel(db.Model):
   clusts    = db.BlobProperty()
   date      = db.DateTimeProperty(auto_now_add=True)
 
-class IndexPage(webapp.RequestHandler):
-  def get(self):
-    _render(self, 'index.html', {})
 
-class SearchPage(webapp.RequestHandler):
+# Base Page
+class _BasePage(webapp.RequestHandler):
+  def _view(self, query, query_md5, cluster_id, sub_cluster_id, page, cluster_model):
+    # cluster
+    query    = cluster_model.query
+    wordlist = cluster_model.wordlist
+    results  = pickle.loads(cluster_model.results)
+    clusts   = pickle.loads(cluster_model.clusts)
+    labels = self._labels(clusts, wordlist, cluster_id)
+
+    # sub cluster
+    if cluster_id >= 0:
+      sub_clusts = cluster.divide(clusts[cluster_id], 0.85)
+      sub_clusts = cluster.sortBySmallestId(sub_clusts)
+      sub_labels = self._labels(sub_clusts, wordlist, sub_cluster_id)
+    else:
+      sub_labels = []
+
+    # all
+    if cluster_id == -1:
+      selected_all = True
+      selected_cluster = False
+      selected_sub_cluster = False
+      display_results = results
+    else:
+      # cluster
+      if sub_cluster_id == -1:
+        selected_all = False
+        selected_cluster = True
+        selected_sub_cluster = False
+        clust = clusts[cluster_id]
+        ids = cluster.topNIds(clust, clust.size)
+        display_results = []
+        for id in ids:
+          display_results.append(results[id])
+      # sub cluster
+      else:
+        selected_all = False
+        selected_cluster = False
+        selected_sub_cluster = True
+        clust = sub_clusts[sub_cluster_id]
+      # search results for cluster
+      ids = cluster.topNIds(clust, clust.size)
+      display_results = []
+      for id in ids:
+        display_results.append(results[id])
+
+    #paging
+    if cluster_id == -1:
+      pages = self._pages(len(results), page)
+    else:
+      pages = self._pages(clust.size, page)
+    start = (page - 1) * 10
+    end   = page * 10
+    if len(pages) > 1:
+      paging = True
+    else:
+      paging = False
+
+    template_values = {
+      'selected_all': selected_all,
+      'selected_cluster': selected_cluster,
+      'selected_subcluster': False,
+      'cluster_id': cluster_id,
+      'sub_cluster_id': sub_cluster_id,
+      'query': query,
+      'query_md5': query_md5,
+      'hits': len(results),
+      'pages':   pages,
+      'paging': paging,
+      'labels': labels,
+      'sublabels': sub_labels,
+      'results': display_results[start:end],
+    }
+    self._render('search.html', template_values)
+
+  def _pages(self, page_count, page):
+    pages = []
+    for i in range(math.ceil(page_count/10.0)):
+      if page == i+1:
+        pages.append((str(i + 1), True))
+      else:
+        pages.append((str(i + 1), False))
+    return pages
+  
+  def _labels(self, clusts, wordlist, selected_cluster_id):
+    labels = []
+    i = 0
+    for clust in clusts:
+      keys = cluster.keyTermIdxs(clust.vec, 2)
+      label = wordlist[keys[0]] + ", " + wordlist[keys[1]]
+      label += " (" + str(clust.size) + ")"
+      if i == selected_cluster_id:
+        labels.append(Cluster(i, label,'selected'))
+      else:
+        labels.append(Cluster(i, label,''))
+      i += 1
+    return labels
+  
+  def _render(self, template_file, template_values):
+    path = os.path.join(os.path.dirname(__file__), 'templates')
+    path = os.path.join(path, template_file)
+    self.response.out.write(template.render(path, template_values))
+
+# Index/Main Page
+class IndexPage(_BasePage):
   def get(self):
-    query = self.request.get('query')
+    self._render('index.html', {})
+
+# Search/Cluster Page
+class SearchPage(_BasePage):
+  def get(self):
+    # query 
+    query, query_md5 = self._query()
+    cluster_id       = -1
+    sub_cluster_id   = -1
+    page             = 1
+    # cluster
+    cluster_model = db.GqlQuery("SELECT * FROM ClusterModel WHERE query_md5 = :1", query_md5).get()
+    # search & clustering
+    if cluster_model == None:
+      cluster_model = self._search_and_cluster(query, query_md5)
+      if cluster_model == None:
+        return
+    # view
+    self._view(query, query_md5, cluster_id, sub_cluster_id, page, cluster_model)
+
+  def _query(self):
+    query = self.request.get('query').encode('utf-8')
     if query == None:
       self.redirect("/")
       return
@@ -44,100 +171,46 @@ class SearchPage(webapp.RequestHandler):
       return
     query = re.sub('\s+', ' ', query)
     query_md5 = md5.new(query).hexdigest()
+    return query, query_md5
 
-    cluster_model = db.GqlQuery("SELECT * FROM ClusterModel WHERE query_md5 = :1", query_md5).get()
-    if cluster_model == None:
-      results = bossapi.search(query, 'web', 100)
-      if len(results) == 0:
-        self.redirect("/")
-        return
-      else:
-        wordlist, wordvectors = bosstextproc.textprocess(results)
-        clusts = cluster.hcluster(rows=wordvectors,distance=distance.pearson, threshold=0.88)
-        clusts = cluster.sortBySmallestId(clusts)
-        cluster_model = ClusterModel()
-        cluster_model.query      = query
-        cluster_model.query_md5  = query_md5
-        cluster_model.results    = pickle.dumps(results)
-        cluster_model.wordlist   = wordlist
-        cluster_model.clusts     = pickle.dumps(clusts)
-        cluster_model.put()
+  def _search_and_cluster(self, query, query_md5):
+    results = bossapi.search(query, 'web', 100)
+    if len(results) == 0:
+      self.redirect("/")
+      return None
     else:
-      wordlist = cluster_model.wordlist
-      results  = pickle.loads(cluster_model.results)
-      clusts   = pickle.loads(cluster_model.clusts)
+      wordlist, wordvectors = bosstextproc.textprocess(results)
+      clusts = cluster.hcluster(rows=wordvectors,distance=distance.pearson, threshold=1.03)
+      clusts = cluster.sortBySmallestId(clusts)
+      cluster_model = ClusterModel()
+      cluster_model.query      = query.decode('utf-8')
+      cluster_model.query_md5  = query_md5
+      cluster_model.results    = pickle.dumps(results)
+      cluster_model.wordlist   = wordlist
+      cluster_model.clusts     = pickle.dumps(clusts)
+      cluster_model.put()
+    return cluster_model
 
-    labels = []
-    i = 0
-    for clust in clusts:
-      keys = cluster.keyTermIdxs(clust.vec, 2)
-      label = wordlist[keys[0]] + ", " + wordlist[keys[1]]
-      label += " (" + str(clust.size) + ")"
-      labels.append(Cluster(i, label, ''))
-      i += 1
 
-    template_values = {
-      'all':       True,
-      'query':     query,
-      'query_md5': query_md5,
-      'results':   results[:10],
-      'labels':    labels,
-      'hits':      len(results)
-    }
-    _render(self, 'search.html', template_values)
-
-class ClusterPage(webapp.RequestHandler):
+#class ClusterPage(webapp.RequestHandler):
+class ClusterPage(_BasePage):
   def get(self):
-    query_md5  = self.request.get('query_md5')
+    # url params
+    query_md5      = self.request.get('query_md5')
+    cluster_id     = int(self.request.get('cluster_id'))
+    sub_cluster_id = int(self.request.get('sub_cluster_id'))
+    page           = int(self.request.get('page'))
+
+    # cluster
     cluster_model = db.GqlQuery("SELECT * FROM ClusterModel WHERE query_md5 = :1", query_md5).get()
     query    = cluster_model.query
-    wordlist = cluster_model.wordlist
-    results  = pickle.loads(cluster_model.results)
-    clusts   = pickle.loads(cluster_model.clusts)
-
-    cluster_id = self.request.get('cluster_id')
-    if int(cluster_id) == -1:
-      cluster_results = results[:10]
-      all = True
-    else:
-      all = None
-      clust = clusts[int(cluster_id)]
-      ids = cluster.topNIds(clust, 10)
-      cluster_results = []
-      for id in ids:
-        cluster_results.append(results[id])
-
-    labels = []
-    i = 0
-    for clust in clusts:
-      keys = cluster.keyTermIdxs(clust.vec, 2)
-      label = wordlist[keys[0]] + ", " + wordlist[keys[1]]
-      label += " (" + str(clust.size) + ")"
-      if i == int(cluster_id):
-        labels.append(Cluster(i, label,'selected'))
-      else:
-        labels.append(Cluster(i, label,''))
-      i += 1
-
-    template_values = {
-      'all': all,
-      'query': query,
-      'query_md5': query_md5,
-      'results': cluster_results,
-      'labels': labels,
-      'hits': len(results)
-    }
-    _render(self, 'search.html', template_values)
-
-def _render(request_handler, template_file, template_values):
-  path = os.path.join(os.path.dirname(__file__), 'templates')
-  path = os.path.join(path, template_file)
-  request_handler.response.out.write(template.render(path, template_values))
+    #view
+    self._view(query, query_md5, cluster_id, sub_cluster_id, page, cluster_model)
 
 apps_binding = []
-apps_binding.append(('/', IndexPage))
-apps_binding.append(('/search', SearchPage))
-apps_binding.append(('/cluster', ClusterPage))
+apps_binding.append(('/',           IndexPage))
+apps_binding.append(('/search',     SearchPage))
+apps_binding.append(('/cluster',    ClusterPage))
 application = webapp.WSGIApplication(apps_binding, debug=True)
 
 def main():

@@ -47,6 +47,13 @@ a:link, a:visited, a:active {
   padding: 4px 0px 4px 0px;
 }
 
+#nav .subclusters{
+  margin-left: 20px;
+}
+#nav .subcluster{
+  padding: 4px 0px 4px 0px;
+}
+
 #main{
   margin-left:260px;
   padding:20px 50px 10px 20px;

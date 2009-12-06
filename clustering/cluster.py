@@ -105,6 +105,23 @@ def sortBySmallestId(clusters):
   clusters.sort(cmp=lambda x,y: cmp(x.smallest_id, y.smallest_id))
   return clusters
   
+def divide(cluster, threshold):
+  clusters = []
+  _divide(cluster, threshold, clusters)
+  return clusters
+
+def _divide(cluster, threshold, clusters):
+    if cluster.id >= 0 or cluster.distance <= threshold:
+      clusters.append(cluster)
+      return
+
+    if cluster.left != None:
+      _divide(cluster.left, threshold, clusters)
+
+    if cluster.right != None:
+      _divide(cluster.right, threshold, clusters)
+  
+
 def printclusters(clusters, results=None, wordlist=None, n = 0):
   for clust in clusters:
     print "SMALLEST_ID=%s SIZE=%d" % (str(clust.smallest_id), clust.size)

@@ -16,11 +16,12 @@ def main(argv):
         print "0 results"
     else:
         wordlist,wordvectors = bosstextproc.textprocess(results) 
-        #clusts = cluster.hcluster(rows=wordvectors)
-        #clusts = cluster.hcluster(rows=wordvectors, distance=distance.pearson)
-        clusts = cluster.hcluster(rows=wordvectors, distance=distance.pearson, threshold=1.20)
-        #clusts = cluster.hcluster(rows=wordvectors, distance=distance.cosine, threshold=0.50)
+        clusts = cluster.hcluster(rows=wordvectors)
+        clusts = cluster.divide(clusts[0], threshold=0.85)
         clusts = cluster.sortBySmallestId(clusts)
+        #clusts = cluster.hcluster(rows=wordvectors, distance=distance.pearson, threshold=0.85)
+        #clusts = cluster.hcluster(rows=wordvectors, distance=distance.cosine, threshold=0.50)
+        #clusts = cluster.sortBySmallestId(clusts)
         #cluster.printcluster(clusts[0], results, wordlist)
         cluster.printclusters(clusts, results, wordlist)
 

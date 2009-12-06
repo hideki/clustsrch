@@ -65,6 +65,7 @@ def textprocess(results, termweight='tfidf'):
                 # tfidf
                 elif termweight == 'tfidf':
                     tf  = wc[word] / doc_size
+                    tf  = math.sqrt(tf)
                     idf = math.sqrt(doc_count / df[word])
                     tfidf = tf * idf
                     wordvector.append(tfidf)
