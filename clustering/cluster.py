@@ -158,14 +158,10 @@ def printclusters(clusters, results=None, wordlist=None, n = 0):
     print "SMALLEST_ID=%s SIZE=%d" % (str(clust.smallest_id), clust.size)
     top_ids = topNIds(clust, 5)
     print top_ids
-    #mi_scores = _calcurate_mi(clusters, i)
-    #keys = keyTermIdxs(mi_scores, 10)
-    #for key in keys:
-    #  print wordlist[key] + ", ",
-    #print ""
     printcluster(clust, results,wordlist,n)
     print ""
     i+=1
+
 
 def printcluster(cluster, results=None, wordlist=None, n = 0):
     print ' ' * n,
@@ -193,6 +189,37 @@ def printcluster(cluster, results=None, wordlist=None, n = 0):
     if cluster.right != None:
         printcluster(cluster.right, results=results,wordlist=wordlist, n = n + 1)
         
+def printclusters_eval(clusters, results=None, wordlist=None, n = 0):
+  for clust in clusters:
+    printcluster_eval(clust, results,wordlist,n)
+    print ""
+
+def printcluster_eval(cluster, results=None, wordlist=None, n = 0):
+  if cluster.id < 0 and n == 0:
+    # negative id means that this is branch
+    keys = keyTermIdxs(cluster.vec, 5)
+    for key in keys:
+      print wordlist[key] + ", ",
+    print ""
+  elif cluster.id < 0:
+    pass
+  else: 
+    # postive id means that this is an endpoint
+    if results == None:
+      print cluster.id
+    else:
+      result = results[cluster.id]
+      try:
+        print result['url']
+      except UnicodeEncodeError:
+        pass
+    
+  # print the left and right branch
+  if cluster.left != None:
+    printcluster_eval(cluster.left, results=results,wordlist=wordlist, n = n + 1)
+  if cluster.right != None:
+    printcluster_eval(cluster.right, results=results,wordlist=wordlist, n = n + 1)
+
 def keyTermIdxs(list, n):
     if len(list) < n:
         n = len(list)

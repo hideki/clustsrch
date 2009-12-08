@@ -18,8 +18,7 @@ def main(argv):
         wordlist,wordvectors = bosstextproc.textprocess(results) 
         clusts = cluster.hcluster(rows=wordvectors)
         clusts = cluster.divide(clusts[0], threshold=1.15)
-        clusts = cluster.sortBySmallestId(clusts)
-        cluster.printclusters(clusts, results, wordlist)
+        cluster.printclusters_eval(clusts, results, wordlist)
 
 if __name__ == '__main__':
     main(sys.argv)

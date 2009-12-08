@@ -50,7 +50,7 @@
                   {% endfor %}
                 </ul>
               {% else %}
-                <a href="/cluster?query_md5={{query_md5}}&cluster_id={{label.index}}&sub_cluster_id=-1&page=1" class="{{label.selected}}">{{label.label}}</a>
+                <a href="/cluster?query_md5={{query_md5}}&cluster_id={{label.index}}&sub_cluster_id=-1&page=1" class="{{label.selected}}">[+] {{label.label}}</a>
               {% endif %}
             </li>
           {% endfor %}
@@ -63,7 +63,7 @@
             <li class='result'>
               <h3 class="title"><a href='{{result.url}}'>{{result.title}}</a><h3> 
               <div class='abstract'>{{result.abstract}}</div>
-              <cite class='url'>{{result.dispurl}}</span>
+              <cite class='url'>{{result.dispurl}}</cite>
             </li>
           {% endfor %}
         </ol>

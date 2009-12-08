@@ -11,17 +11,13 @@ import distance
 
 def main(argv):
     query = reduce(lambda x, y: x + " " + y ,argv[1:])
-    results = bossapi.search(query, 'web', 50)
+    results = bossapi.search(query, 'web', 20)
     if len(results) == 0:
         print "0 results"
     else:
         wordlist,wordvectors = bosstextproc.textprocess(results) 
-        #clusts = cluster.hcluster(rows=wordvectors)
-        #clusts = cluster.hcluster(rows=wordvectors, distance=distance.pearson)
-        clusts = cluster.hcluster(rows=wordvectors, distance=distance.pearson, threshold=1.20)
-        #clusts = cluster.hcluster(rows=wordvectors, distance=distance.cosine, threshold=0.50)
+        clusts = cluster.hcluster(rows=wordvectors, distance=distance.pearson, threshold=1.15)
         clusts = cluster.sortBySmallestId(clusts)
-        #cluster.printcluster(clusts[0], results, wordlist)
         cluster.printclusters(clusts, results, wordlist)
 
 if __name__ == '__main__':
