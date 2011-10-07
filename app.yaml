@@ -1,11 +1,20 @@
 application: clustsrch
-version: 1
+version: 4
 runtime: python
 api_version: 1
 
+default_expiration: "30d"
+
 handlers:
+- url: /favicon.ico
+  static_dir: css/favicon.ico
+
 - url: /css
   static_dir: css
 
 - url: .*
   script: main.py
+
+- url: /tasks/deletecache
+  script: main.py
+  login: admin

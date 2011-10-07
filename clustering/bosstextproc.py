@@ -5,6 +5,10 @@ import math
 import text
 
 
+def remove_html_tags(data):
+    p = re.compile(r'<.*?>')
+    return p.sub('', data)
+
 def textprocess(results, termweight='tfidf'):
     # word count list
     wordcounts = []
@@ -17,15 +21,15 @@ def textprocess(results, termweight='tfidf'):
         # word list
         words = []
         # title
-        words.extend(text.tokenize(result['title']))
+        words.extend(text.tokenize(remove_html_tags(result['title'])))
         # abstract
-        #words.extend(text.tokenize(result['abstract']))
+        words.extend(text.tokenize(remove_html_tags(result['abstract'])))
         # key terms of Yahoo! BOSS results
-        if 'keyterms' in result and len(result['keyterms']) > 0:
-            words.extend(text.cleanwords(_keyterms(result['keyterms']['terms'])))
+        #if 'keyterms' in result and len(result['keyterms']) > 0:
+        #    words.extend(text.cleanwords(_keyterms(result['keyterms']['terms'])))
         # del.icio.us tags of Yahoo! BOSS results
-        if 'delicious_toptags' in result and len(result['delicious_toptags']) > 0:
-            words.extend(text.cleanwords(_delicioustags(result['delicious_toptags']['tags'])))
+        #if 'delicious_toptags' in result and len(result['delicious_toptags']) > 0:
+        #    words.extend(text.cleanwords(_delicioustags(result['delicious_toptags']['tags'])))
         # word count from word list
         wc = text.wordcount(words)
         wordcounts.append(wc)

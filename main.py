@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+
+from google.appengine.dist import use_library
+use_library('django', '1.2')
+
+
+import datetime
 import logging
 import math
 import md5
@@ -11,7 +20,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-from clustering import bossapi
+from clustering import bossapiv2
 from clustering import bosstextproc
 from clustering import cluster
 from clustering import distance
@@ -111,7 +120,7 @@ class _BasePage(webapp.RequestHandler):
 
   def _pages(self, page_count, page):
     pages = []
-    for i in range(math.ceil(page_count/10.0)):
+    for i in range(int(math.ceil(page_count/10.0))):
       if page == i+1:
         pages.append((str(i + 1), True))
       else:
@@ -174,7 +183,7 @@ class SearchPage(_BasePage):
     return query, query_md5
 
   def _search_and_cluster(self, query, query_md5):
-    results = bossapi.search(query, 'web', 100)
+    results = bossapiv2.search(query, 100)
     if len(results) == 0:
       self.redirect("/")
       return None
@@ -207,6 +216,13 @@ class ClusterPage(_BasePage):
     #view
     self._view(query, query_md5, cluster_id, sub_cluster_id, page, cluster_model)
 
+class DeleteCache(webapp.RequestHandler):
+    def get(self) :
+        date = datetime.datetime.now() - datetime.timedelta(1, 0);
+        modelset = ClusterModel.all().filter('date <', date)
+        for model in modelset:
+            model.delete()
+
 class RemoveAll(webapp.RequestHandler):
     def get(self) :
         limit = 10
@@ -220,7 +236,7 @@ class RemoveAll(webapp.RequestHandler):
         self.response.headers['Content-Type'] = 'text/html'
         self.response.out.write( '<html>' )
         self.response.out.write( '<head>' )
-        self.response.out.write( '<META HTTP-EQUIV="REFRESH" CONTENT="10;URL=/RemoveAll">')
+        self.response.out.write( '<META HTTP-EQUIV="REFRESH" CONTENT="10;URL=/removeall">')
         self.response.out.write( '</head>' )
         self.response.out.write( '<body>' )
         self.response.out.write( 'Again after 10seconds.' )
@@ -232,10 +248,11 @@ class RemoveAll(webapp.RequestHandler):
         return query[0:min(query.count(),limit)]
 
 apps_binding = []
-apps_binding.append(('/',           IndexPage))
-apps_binding.append(('/search',     SearchPage))
-apps_binding.append(('/cluster',    ClusterPage))
-apps_binding.append(('/removeall',    RemoveAll))
+apps_binding.append(('/',                  IndexPage))
+apps_binding.append(('/search',            SearchPage))
+apps_binding.append(('/cluster',           ClusterPage))
+apps_binding.append(('/removeall',         RemoveAll))
+apps_binding.append(('/tasks/deletecache', DeleteCache))
 application = webapp.WSGIApplication(apps_binding, debug=True)
 
 def main():

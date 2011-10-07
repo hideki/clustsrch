@@ -4,14 +4,14 @@
 __author__ = "Hideki Itakura (h.itakura@yahoo.com)"
 
 import sys
-import bossapi
+import bossapiv2
 import bosstextproc
 import cluster
 import distance
 
 def main(argv):
     query = reduce(lambda x, y: x + " " + y ,argv[1:])
-    results = bossapi.search(query, 'web', 20)
+    results = bossapiv2.search(query, 20)
     if len(results) == 0:
         print "0 results"
     else:

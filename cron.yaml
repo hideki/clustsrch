@@ -1,0 +1,4 @@
+cron:
+- description: daily cache delete job
+  url: /tasks/deletecache
+  schedule: every 6 hours

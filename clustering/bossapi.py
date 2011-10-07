@@ -4,7 +4,7 @@
 import urllib
 import simplejson
 
-APP_ID         = 'pF6bKWbV34GgxPKlvt1QAZz7goeq5wE66hlPTtKyZUYrzZndThGoyqYX4'
+APP_ID         = '<APP_ID>'
 SEARCH_API_URL = 'http://boss.yahooapis.com/ysearch/%s/v%d/%s?format=json&start=%d&count=%d&lang=%s&region=%s&appid=' + APP_ID
 
 def _params(d):
@@ -15,6 +15,7 @@ def _params(d):
 
 def _search(query, vertical="web", version=1, start=0, count=50, lang="en", region="us", more={}):
     url = SEARCH_API_URL % (vertical, version, urllib.quote_plus(query), start, count, lang, region) + _params(more)
+    print url
     return simplejson.load(urllib.urlopen(url))
 
 def search(query, vertical="web", total_req_size = 100):
