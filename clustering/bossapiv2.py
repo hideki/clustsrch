@@ -7,6 +7,7 @@ import simplejson
 from google.appengine.api import urlfetch
 import oauth.oauth as oauth
 
+
 OAUTH_CONSUMER_KEY    = "<oauth consumer key>"
 OAUTH_CONSUMER_SECRET = "<oauth consumer secret>"
 SEARCH_API_URL        = 'http://yboss.yahooapis.com/ysearch/limitedweb'

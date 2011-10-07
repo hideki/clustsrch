@@ -63,9 +63,9 @@
         <ol class='results'>
           {% for result in results %}
             <li class='result'>
-              <h3 class="title"><a href='{{result.url}}'>{{result.title}}</a><h3> 
-              <div class='abstract'>{{result.abstract}}</div>
-              <cite class='url'>{{result.dispurl}}</cite>
+              <h3 class="title"><a href='{{result.url}}'>{{result.title|safe}}</a><h3> 
+              <div class='abstract'>{{result.abstract|safe}}</div>
+              <cite class='url'>{{result.dispurl|safe}}</cite>
             </li>
           {% endfor %}
         </ol>
